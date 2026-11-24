@@ -27,7 +27,7 @@ public class LevelSelectScreen : UIScreen
     {
         if (!GameData.IsLevelUnlocked(index))
         {
-            AudioHub.Play(SfxId.Deny);
+            OrbUiChimes.Play(UiChime.Error);
             StartCoroutine(UiAnim.Shake((RectTransform)cards[index].transform, 16f, 0.35f));
             UIManager.Instance.Toast("Earn a star on level " + index + " to unlock");
             return;

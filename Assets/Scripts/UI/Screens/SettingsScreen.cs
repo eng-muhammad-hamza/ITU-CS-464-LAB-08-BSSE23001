@@ -18,9 +18,8 @@ public class SettingsScreen : UIScreen
     public void ResetProgress()
     {
         GameData.ResetProgress();
-        AudioHub.RefreshVolumes();
         OnShowStart();
-        AudioHub.Play(SfxId.Lose);
+        OrbUiChimes.Play(UiChime.Error);
         UIManager.Instance.Toast("Progress reset");
     }
 }

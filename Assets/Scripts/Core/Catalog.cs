@@ -4,6 +4,11 @@ public struct LevelDef
 {
     public string name;
     public int shardTarget;
+    public int chasers;
+    public int patrollers;
+    public int spikes;
+    public int turrets;
+    public float chaserSpeed;
 }
 
 public struct OrbDef
@@ -26,12 +31,12 @@ public static class Catalog
 {
     public static readonly LevelDef[] Levels =
     {
-        new LevelDef { name = "First Light",    shardTarget = 8 },
-        new LevelDef { name = "Drone Alley",    shardTarget = 10 },
-        new LevelDef { name = "Spike Garden",   shardTarget = 12 },
-        new LevelDef { name = "Crossfire",      shardTarget = 12 },
-        new LevelDef { name = "Swarm",          shardTarget = 14 },
-        new LevelDef { name = "Core Meltdown",  shardTarget = 16 },
+        new LevelDef { name = "First Light",    shardTarget = 8,  chasers = 0, patrollers = 1, spikes = 0, turrets = 0, chaserSpeed = 2.6f },
+        new LevelDef { name = "Drone Alley",    shardTarget = 10, chasers = 1, patrollers = 1, spikes = 0, turrets = 0, chaserSpeed = 2.8f },
+        new LevelDef { name = "Spike Garden",   shardTarget = 12, chasers = 1, patrollers = 1, spikes = 3, turrets = 0, chaserSpeed = 3.0f },
+        new LevelDef { name = "Crossfire",      shardTarget = 12, chasers = 1, patrollers = 1, spikes = 2, turrets = 2, chaserSpeed = 3.0f },
+        new LevelDef { name = "Swarm",          shardTarget = 14, chasers = 3, patrollers = 1, spikes = 3, turrets = 1, chaserSpeed = 3.2f },
+        new LevelDef { name = "Core Meltdown",  shardTarget = 16, chasers = 3, patrollers = 2, spikes = 4, turrets = 2, chaserSpeed = 3.4f },
     };
 
     public static readonly OrbDef[] Orbs =

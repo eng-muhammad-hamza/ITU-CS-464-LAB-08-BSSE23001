@@ -92,7 +92,8 @@ public class UIManager : MonoBehaviour
     {
         busy = true;
         inputBlocker.blocksRaycasts = true;
-        AudioHub.Play(forward ? SfxId.Whoosh : SfxId.Back, forward ? 1f : 1.1f);
+        if (forward && IsPanel(target.id)) OrbUiChimes.Play(UiChime.PanelOpen);
+        else if (!forward && current != null && IsPanel(current.id)) OrbUiChimes.Play(UiChime.PanelClose);
 
         UIScreen underlay = null;
         if (target.overlay && history.Count > 0)
@@ -114,6 +115,8 @@ public class UIManager : MonoBehaviour
         inputBlocker.blocksRaycasts = false;
         busy = false;
     }
+
+    static bool IsPanel(ScreenId screenId) => screenId == ScreenId.Settings || screenId == ScreenId.Credits || screenId == ScreenId.Shop;
 
     void HandleBackKey()
     {
@@ -138,11 +141,13 @@ public class UIManager : MonoBehaviour
             case ButtonAction.Home:
                 if (busy) return;
                 if (session != null) session.Cleanup();
+                CloseArena();
                 GoClean(ScreenId.MainMenu, false);
                 break;
             case ButtonAction.Levels:
                 if (busy) return;
                 if (session != null) session.Cleanup();
+                CloseArena();
                 GoClean(ScreenId.LevelSelect, false, ScreenId.MainMenu);
                 break;
             case ButtonAction.SelectLevel: GetScreen<LevelSelectScreen>().SelectLevel(arg); break;
@@ -157,14 +162,17 @@ public class UIManager : MonoBehaviour
             case ButtonAction.Pause:
                 if (busy || session == null || !session.Running) return;
                 session.SetPaused(true);
+                OrbUiChimes.Play(UiChime.Pause);
                 Go(ScreenId.Pause);
                 break;
             case ButtonAction.Resume:
                 if (busy) return;
                 if (session != null) session.SetPaused(false);
+                OrbUiChimes.Play(UiChime.Resume);
                 Back();
                 break;
             case ButtonAction.Dash:
+                if (PlayerOrb.Instance != null) PlayerOrb.Instance.TryDash();
                 break;
             case ButtonAction.CompleteLevel:
                 if (session != null) session.EndLevel(true);
@@ -181,6 +189,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    void CloseArena()
+    {
+        if (OrbArenaLoader.Instance != null) OrbArenaLoader.Instance.CloseArena();
+    }
+
     IEnumerator StartLevelRoutine(int level)
     {
         if (busy) yield break;
@@ -188,7 +201,6 @@ public class UIManager : MonoBehaviour
         inputBlocker.blocksRaycasts = true;
         fadeOverlay.blocksRaycasts = true;
         GameData.SelectedLevel = level;
-        AudioHub.Play(SfxId.Whoosh);
 
         yield return UiAnim.Fade(fadeOverlay, 0f, 1f, 0.2f, EaseType.OutQuad);
 
@@ -196,6 +208,31 @@ public class UIManager : MonoBehaviour
         history.Clear();
         history.Push(map[ScreenId.MainMenu]);
         history.Push(map[ScreenId.LevelSelect]);
+
+        OrbArenaLoader loader = OrbArenaLoader.Instance;
+        if (loader != null && !loader.IsArenaLoaded)
+        {
+            UIScreen loadingScreen = map[ScreenId.Loading];
+            loadingScreen.ShowInstant();
+            current = loadingScreen;
+            yield return UiAnim.Fade(fadeOverlay, 1f, 0f, 0.2f, EaseType.OutQuad);
+            yield return loader.LoadArena();
+            yield return UiAnim.Fade(fadeOverlay, 0f, 1f, 0.2f, EaseType.OutQuad);
+            loadingScreen.HideInstant();
+        }
+
+        if (GameSession.Instance == null)
+        {
+            OrbUiChimes.Play(UiChime.Error);
+            map[ScreenId.LevelSelect].ShowInstant();
+            current = map[ScreenId.LevelSelect];
+            yield return UiAnim.Fade(fadeOverlay, 1f, 0f, 0.2f, EaseType.OutQuad);
+            fadeOverlay.blocksRaycasts = false;
+            inputBlocker.blocksRaycasts = false;
+            busy = false;
+            Toast("Arena scene is missing from Build Settings");
+            yield break;
+        }
 
         GameSession.Instance.Cleanup();
         GameSession.Instance.BuildLevel(level);

@@ -57,7 +57,7 @@ public class LoadoutScreen : UIScreen
     {
         if (!GameData.OwnsOrb(index))
         {
-            AudioHub.Play(SfxId.Deny);
+            OrbUiChimes.Play(UiChime.Error);
             UIManager.Instance.Toast(Catalog.Orbs[index].name + " is locked - unlock it in the Shop");
             return;
         }

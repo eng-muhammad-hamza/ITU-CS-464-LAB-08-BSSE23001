@@ -5,9 +5,7 @@ using UnityEngine.UI;
 
 public class UiSlider : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
 {
-    public enum Setting { Music, Sfx }
-
-    public Setting setting;
+    public OrbBus bus;
     public RectTransform track;
     public Image fill;
     public RectTransform handle;
@@ -18,7 +16,7 @@ public class UiSlider : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
 
     public void Refresh()
     {
-        value = setting == Setting.Music ? GameData.MusicVolume : GameData.SfxVolume;
+        value = OrbMixerSettings.GetLinear(bus);
         Apply();
     }
 
@@ -33,17 +31,26 @@ public class UiSlider : MonoBehaviour, IPointerDownHandler, IDragHandler, IPoint
     public void OnPointerUp(PointerEventData eventData)
     {
         Grow(1f, 0.2f, EaseType.OutBack);
-        PlayerPrefs.Save();
-        if (setting == Setting.Sfx) AudioHub.Play(SfxId.Pickup);
+        OrbMixerSettings.Save();
+        PlayPreview();
     }
 
     void Drag(PointerEventData eventData)
     {
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(track, eventData.position, eventData.pressEventCamera, out Vector2 local)) return;
         value = Mathf.Clamp01((local.x - track.rect.xMin) / track.rect.width);
-        if (setting == Setting.Music) { GameData.MusicVolume = value; AudioHub.RefreshVolumes(); }
-        else GameData.SfxVolume = value;
+        OrbMixerSettings.SetLinear(bus, value);
         Apply();
+    }
+
+    void PlayPreview()
+    {
+        switch (bus)
+        {
+            case OrbBus.Sfx: OrbSfxPlayer.Play(ArenaCue.ShardPickup); break;
+            case OrbBus.Music: break;
+            default: OrbUiChimes.Play(UiChime.Select); break;
+        }
     }
 
     void Apply()

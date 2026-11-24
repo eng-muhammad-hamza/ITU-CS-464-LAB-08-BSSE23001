@@ -57,14 +57,20 @@ public static class GameData
     public static bool BoostEnabled(int id) => PlayerPrefs.GetInt("boostOn" + id, 0) == 1 && BoostCount(id) > 0;
     public static void SetBoostEnabled(int id, bool on) => PlayerPrefs.SetInt("boostOn" + id, on ? 1 : 0);
 
-    public static float MusicVolume { get => PlayerPrefs.GetFloat("music", 0.6f); set => PlayerPrefs.SetFloat("music", value); }
-    public static float SfxVolume { get => PlayerPrefs.GetFloat("sfx", 0.8f); set => PlayerPrefs.SetFloat("sfx", value); }
     public static bool Haptics { get => PlayerPrefs.GetInt("haptics", 1) == 1; set => PlayerPrefs.SetInt("haptics", value ? 1 : 0); }
     public static bool ScreenShake { get => PlayerPrefs.GetInt("shake", 1) == 1; set => PlayerPrefs.SetInt("shake", value ? 1 : 0); }
 
     public static void ResetProgress()
     {
-        PlayerPrefs.DeleteAll();
+        PlayerPrefs.DeleteKey("gems");
+        for (int i = 0; i < Catalog.Levels.Length; i++) PlayerPrefs.DeleteKey("stars" + i);
+        for (int i = 0; i < Catalog.Orbs.Length; i++) PlayerPrefs.DeleteKey("orb" + i);
+        for (int i = 0; i < Catalog.Boosts.Length; i++)
+        {
+            PlayerPrefs.DeleteKey("boostCount" + i);
+            PlayerPrefs.DeleteKey("boostOn" + i);
+        }
+        PlayerPrefs.DeleteKey("selectedOrb");
         PlayerPrefs.Save();
         SelectedLevel = 0;
     }

@@ -32,7 +32,7 @@ public class SplashScreen : UIScreen
     {
         if (logo != null)
             yield return UiAnim.Scale(logo, Vector3.zero, Vector3.one, 0.35f, EaseType.OutQuad);
-        AudioHub.Play(SfxId.Confirm);
+        OrbUiChimes.Play(UiChime.Select);
 
         float t = 0f;
         while (t < 1f)
