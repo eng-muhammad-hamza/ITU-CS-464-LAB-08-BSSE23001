@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a40fd3516bd27e44b855215f21a22159, type: 3}
+  m_Name: OrbSoundBank
+  m_EditorClassIdentifier: Assembly-CSharp::OrbSoundBank
+  uiChimeClips:
+  - {fileID: 8300000, guid: 6b9ddbb40bc663b41bb76b91b1ea2b1e, type: 3}
+  - {fileID: 8300000, guid: 7583aaf585382db458d5f784f2ac88eb, type: 3}
+  - {fileID: 8300000, guid: 01854495af42d544f8fa4fccbfdb0cff, type: 3}
+  - {fileID: 8300000, guid: 3696131ad23ed74419b6ba7e53a00b20, type: 3}
+  - {fileID: 8300000, guid: ca98d838da6986d40ab95b0f6a191457, type: 3}
+  - {fileID: 8300000, guid: 7966078b20327434f8bb4f4fd8b0c648, type: 3}
+  - {fileID: 8300000, guid: a25cd8a0bcc86744e871db741a0e21d3, type: 3}
+  - {fileID: 8300000, guid: e8ec9f91ce41cbd4284b2fe58c043e6a, type: 3}
+  - {fileID: 8300000, guid: 2f1ece8ea75d91c49808eea4a0aee7b0, type: 3}
+  - {fileID: 8300000, guid: 569d368cef914b049bca82c411be12fa, type: 3}
+  - {fileID: 8300000, guid: d9daf3891e5840d4f807ca6d317c3497, type: 3}
+  arenaCueClips:
+  - {fileID: 8300000, guid: 9d086ab2bdbff934caddb727522fc56e, type: 3}
+  - {fileID: 8300000, guid: 80ef63cceb6936b4f9f07a10f492a7ef, type: 3}
+  - {fileID: 8300000, guid: 31b58f2854273d34d8a298fdc63f08cd, type: 3}
+  - {fileID: 8300000, guid: f99a9dc5a9436824f98c5f1b61bf1d70, type: 3}
+  - {fileID: 8300000, guid: c7f3595fff49c03499d340efaa1c11a6, type: 3}
+  - {fileID: 8300000, guid: 9bac556977efcb541acdc2c051b462b2, type: 3}
+  - {fileID: 8300000, guid: 231da182502bcf84c91c4cb1b448f846, type: 3}
+  - {fileID: 8300000, guid: be8a226e09c964e41a9e3c5537292647, type: 3}
+  - {fileID: 8300000, guid: 74d6389171b8bc64fa3efb875396c741, type: 3}
+  - {fileID: 8300000, guid: cb88f34cbd2af1c42a89035c27930c57, type: 3}
+  - {fileID: 8300000, guid: 9aada730c71d37548a016237fda0496a, type: 3}
+  - {fileID: 8300000, guid: d0d215b6e19f46b45a12f3e0cfe264db, type: 3}
+  - {fileID: 8300000, guid: 316261405c952014cb945b3e27287536, type: 3}
+  - {fileID: 8300000, guid: 69ef62fa378b6d04db33b3156a071b68, type: 3}
+  menuMusic: {fileID: 8300000, guid: cf4ee23b3a4b2e64a81a62627e4943dd, type: 3}
+  arenaMusic: {fileID: 8300000, guid: 10eb108dc1540e640a9429ad88a8708a, type: 3}
+  resultsMusic: {fileID: 8300000, guid: e59ef4681da18044d89c1b5cf707995e, type: 3}
