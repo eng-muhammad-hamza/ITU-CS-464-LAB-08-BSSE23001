@@ -1,4 +1,5 @@
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 public class ShopScreen : UIScreen
@@ -34,34 +35,51 @@ public class ShopScreen : UIScreen
         if (tab == 0) Stagger(0f, rows);
     }
 
-    float PanelWidth => ((RectTransform)orbsPanel.parent).rect.width > 0f ? ((RectTransform)orbsPanel.parent).rect.width : 960f;
+    float PanelWidth => ((RectTransform)orbsPanel.parent).rect.width;
 
     void PlaceTab(int index)
     {
-        float w = PanelWidth;
-        orbsPanel.anchoredPosition = new Vector2(index == 0 ? 0f : -w, 0f);
-        boostsPanel.anchoredPosition = new Vector2(index == 0 ? w : 0f, 0f);
-        tabIndicator.anchoredPosition = new Vector2(TabX(index), 0f);
+        orbsPanel.anchoredPosition = new Vector2(index == 0 ? 0f : -PanelWidth, orbsPanel.anchoredPosition.y);
+        boostsPanel.anchoredPosition = new Vector2(index == 0 ? PanelWidth : 0f, boostsPanel.anchoredPosition.y);
+        orbsPanel.gameObject.SetActive(index == 0);
+        boostsPanel.gameObject.SetActive(index == 1);
+        tabIndicator.anchoredPosition = new Vector2(IndicatorX(index), tabIndicator.anchoredPosition.y);
+        PaintTabLabels(index);
     }
 
-    float TabX(int index) => tabButtons[index].anchoredPosition.x;
+    float IndicatorX(int index) => tabButtons[index].anchoredPosition.x - tabButtons[0].anchoredPosition.x;
+
+    void PaintTabLabels(int index)
+    {
+        for (int i = 0; i < tabButtons.Length; i++)
+        {
+            TMP_Text label = tabButtons[i].GetComponentInChildren<TMP_Text>();
+            if (label != null) label.color = i == index ? UiTheme.TextOnBright : UiTheme.Text;
+        }
+    }
 
     public void SetTab(int index, bool animate)
     {
         if (index == tab) return;
         tab = index;
         if (tabRoutine != null) StopCoroutine(tabRoutine);
-        if (animate && gameObject.activeInHierarchy) tabRoutine = StartCoroutine(SlideTab(index));
-        else PlaceTab(index);
+        tabRoutine = StartCoroutine(SlideTab(index));
     }
 
     IEnumerator SlideTab(int index)
     {
         float w = PanelWidth;
+        orbsPanel.gameObject.SetActive(true);
+        boostsPanel.gameObject.SetActive(true);
+        PaintTabLabels(index);
+        float y1 = orbsPanel.anchoredPosition.y, y2 = boostsPanel.anchoredPosition.y;
+
         yield return UiAnim.Parallel(this,
-            UiAnim.Move(orbsPanel, orbsPanel.anchoredPosition, new Vector2(index == 0 ? 0f : -w, 0f), 0.22f, EaseType.OutQuad),
-            UiAnim.Move(boostsPanel, boostsPanel.anchoredPosition, new Vector2(index == 0 ? w : 0f, 0f), 0.22f, EaseType.OutQuad),
-            UiAnim.Move(tabIndicator, tabIndicator.anchoredPosition, new Vector2(TabX(index), 0f), 0.22f, EaseType.OutQuad));
+            UiAnim.Move(orbsPanel, orbsPanel.anchoredPosition, new Vector2(index == 0 ? 0f : -w, y1), 0.35f, EaseType.InOutCubic),
+            UiAnim.Move(boostsPanel, boostsPanel.anchoredPosition, new Vector2(index == 0 ? w : 0f, y2), 0.35f, EaseType.InOutCubic),
+            UiAnim.Move(tabIndicator, tabIndicator.anchoredPosition, new Vector2(IndicatorX(index), tabIndicator.anchoredPosition.y), 0.35f, EaseType.InOutCubic));
+        orbsPanel.gameObject.SetActive(index == 0);
+        boostsPanel.gameObject.SetActive(index == 1);
     }
 
     void Refresh()
@@ -96,7 +114,7 @@ public class ShopScreen : UIScreen
         {
             GameData.SelectedOrb = index;
             PlayerPrefs.Save();
-            AudioHub.Play(SfxId.Confirm);
+            OrbUiChimes.Play(UiChime.Select);
             UIManager.Instance.Toast(orb.name + " equipped");
         }
         else if (GameData.TrySpend(orb.price))
@@ -104,9 +122,9 @@ public class ShopScreen : UIScreen
             GameData.GiveOrb(index);
             GameData.SelectedOrb = index;
             PlayerPrefs.Save();
-            AudioHub.Play(SfxId.Buy);
+            OrbUiChimes.Play(UiChime.Success);
             GameData.Vibrate();
-            StartCoroutine(UiAnim.Punch(row.transform, 0.05f, 0.3f));
+            StartCoroutine(UiAnim.Punch(row.transform, 0.06f, 0.5f));
             UIManager.Instance.Toast(orb.name + " unlocked!");
         }
         else Denied(row);
@@ -120,8 +138,8 @@ public class ShopScreen : UIScreen
         if (GameData.TrySpend(boost.price))
         {
             GameData.AddBoost(index, 1);
-            AudioHub.Play(SfxId.Buy);
-            StartCoroutine(UiAnim.Punch(row.extra.transform, 0.2f, 0.3f));
+            OrbUiChimes.Play(UiChime.Success);
+            StartCoroutine(UiAnim.Punch(row.extra.transform, 0.5f, 0.5f));
             UIManager.Instance.Toast(boost.name + " added");
         }
         else Denied(row);
@@ -130,9 +148,9 @@ public class ShopScreen : UIScreen
 
     void Denied(ShopRow row)
     {
-        AudioHub.Play(SfxId.Deny);
-        StartCoroutine(UiAnim.Shake((RectTransform)row.transform, 12f, 0.25f));
+        OrbUiChimes.Play(UiChime.Error);
+        StartCoroutine(UiAnim.Shake((RectTransform)row.transform, 16f, 0.35f));
         gemChip.FlashDenied();
-        UIManager.Instance.Toast("Not enough gems - complete levels to earn more");
+        UIManager.Instance.Toast("Not enough gems - win levels to earn more");
     }
 }

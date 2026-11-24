@@ -3,14 +3,13 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class UiButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler, IPointerClickHandler
+public class UiButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler, IPointerClickHandler, IPointerEnterHandler
 {
     public ButtonAction action;
     public ScreenId target;
     public int argument;
     public bool interactable = true;
     public bool fireOnDown;
-    public SfxId clickSound = SfxId.Click;
 
     public Graphic tint;
     public TMP_Text label;
@@ -57,6 +56,12 @@ public class UiButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
         if (confirming) CancelConfirm();
     }
 
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (!interactable || eventData.pointerId >= 0) return;
+        OrbUiChimes.Play(UiChime.Hover);
+    }
+
     public void OnPointerDown(PointerEventData eventData)
     {
         if (!interactable) return;
@@ -94,7 +99,7 @@ public class UiButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
                 confirmUntil = Time.unscaledTime + 2.5f;
                 if (label != null) label.text = confirmLabel;
                 if (tint != null) tint.color = UiTheme.Danger;
-                AudioHub.Play(SfxId.Click, 0.8f);
+                OrbUiChimes.Play(UiChime.Press, 0.8f);
                 return;
             }
             confirming = false;
@@ -102,8 +107,23 @@ public class UiButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, I
             if (tint != null) tint.color = restColor;
         }
 
-        AudioHub.Play(clickSound);
+        if (action != ButtonAction.Pause && action != ButtonAction.Resume && action != ButtonAction.Dash) OrbUiChimes.Play(ChimeFor(action));
         UIManager.Instance.Perform(action, target, argument);
+    }
+
+    static UiChime ChimeFor(ButtonAction buttonAction)
+    {
+        switch (buttonAction)
+        {
+            case ButtonAction.Back:
+            case ButtonAction.Home:
+            case ButtonAction.Levels: return UiChime.Back;
+            case ButtonAction.Play:
+            case ButtonAction.Restart:
+            case ButtonAction.Next:
+            case ButtonAction.SelectLevel: return UiChime.Select;
+            default: return UiChime.Press;
+        }
     }
 
     void CancelConfirm()

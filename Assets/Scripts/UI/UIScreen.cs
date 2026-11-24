@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public enum ScreenId { Splash, MainMenu, LevelSelect, Loadout, Hud, Pause, Results, Shop, Settings, Credits }
+public enum ScreenId { Splash, MainMenu, LevelSelect, Loadout, Hud, Pause, Results, Shop, Settings, Credits, Loading }
 
 public enum ScreenTransition { Fade, SlideHorizontal, SlideUp, Pop }
 

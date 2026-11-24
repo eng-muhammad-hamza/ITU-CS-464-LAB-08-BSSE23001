@@ -54,7 +54,6 @@ public class ResultsScreen : UIScreen
         GameSession s = GameSession.Instance;
 
         yield return UiAnim.Scale(title.transform, Vector3.zero, Vector3.one, 0.25f, EaseType.OutQuad);
-        AudioHub.Play((s != null && s.LastWin) ? SfxId.Win : SfxId.Lose);
 
         int starCount = s != null ? s.LastStars : 0;
         for (int i = 0; i < stars.Length; i++)
@@ -62,7 +61,7 @@ public class ResultsScreen : UIScreen
             if (i < starCount)
             {
                 stars[i].color = UiTheme.Reward;
-                AudioHub.Play(SfxId.Pickup, 1f + i * 0.2f);
+                OrbUiChimes.Play(UiChime.Success, 1f + i * 0.2f);
                 yield return UiAnim.Scale(stars[i].transform, Vector3.one * 0.4f, Vector3.one, 0.2f, EaseType.OutQuad);
             }
             yield return new WaitForSecondsRealtime(0.08f);
@@ -73,11 +72,11 @@ public class ResultsScreen : UIScreen
         yield return UiAnim.Parallel(this,
             UiAnim.Count(shardsText, 0, shards, 0.4f, EaseType.OutQuad),
             UiAnim.Count(gemsText, 0, gems, 0.5f, EaseType.OutQuad, "+"));
-        if (gems > 0) AudioHub.Play(SfxId.Buy);
+        if (gems > 0) OrbUiChimes.Play(UiChime.Success, 1.25f);
 
         if (s != null && s.LastNewBest)
         {
-            AudioHub.Play(SfxId.Confirm);
+            OrbUiChimes.Play(UiChime.Select, 1.2f);
             yield return UiAnim.Scale(newBest, Vector3.zero, Vector3.one, 0.25f, EaseType.OutQuad);
         }
 

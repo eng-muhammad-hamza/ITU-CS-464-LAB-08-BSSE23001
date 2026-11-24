@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class UiToggle : MonoBehaviour, IPointerClickHandler
 {
-    public enum Setting { Haptics, ScreenShake }
+    public enum Setting { Haptics, ScreenShake, SoundOn }
 
     public Setting setting;
     public RectTransform knob;
@@ -18,18 +18,38 @@ public class UiToggle : MonoBehaviour, IPointerClickHandler
 
     public void Refresh()
     {
-        value = setting == Setting.Haptics ? GameData.Haptics : GameData.ScreenShake;
+        value = ReadValue();
         Apply(false);
     }
 
     public void OnPointerClick(PointerEventData eventData)
     {
         value = !value;
-        if (setting == Setting.Haptics) GameData.Haptics = value; else GameData.ScreenShake = value;
+        WriteValue();
         PlayerPrefs.Save();
-        AudioHub.Play(SfxId.Click, value ? 1.15f : 0.85f);
-        if (value) GameData.Vibrate();
+        OrbUiChimes.Play(UiChime.Toggle, value ? 1.15f : 0.85f);
+        if (value && setting != Setting.SoundOn) GameData.Vibrate();
         Apply(true);
+    }
+
+    bool ReadValue()
+    {
+        switch (setting)
+        {
+            case Setting.Haptics: return GameData.Haptics;
+            case Setting.ScreenShake: return GameData.ScreenShake;
+            default: return !OrbMixerSettings.IsMuted;
+        }
+    }
+
+    void WriteValue()
+    {
+        switch (setting)
+        {
+            case Setting.Haptics: GameData.Haptics = value; break;
+            case Setting.ScreenShake: GameData.ScreenShake = value; break;
+            default: OrbMixerSettings.SetMuted(!value); break;
+        }
     }
 
     void Apply(bool animate)
