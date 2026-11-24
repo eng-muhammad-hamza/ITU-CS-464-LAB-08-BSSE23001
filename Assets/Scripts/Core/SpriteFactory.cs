@@ -87,120 +87,74 @@ public static class SpriteFactory
         return Mathf.Sqrt(ox * ox + oy * oy) + Mathf.Min(Mathf.Max(qx, qy), 0f) - radius;
     }
 
+    static readonly float[] GemPoly = { -0.9f, 0.25f, -0.5f, 0.8f, 0.5f, 0.8f, 0.9f, 0.25f, 0f, -0.95f };
     static readonly float[] PlayPoly = { -0.55f, 0.8f, -0.55f, -0.8f, 0.85f, 0f };
     static readonly float[] BoltPoly = { 0.15f, 0.95f, -0.55f, -0.05f, -0.05f, -0.05f, -0.2f, -0.95f, 0.55f, 0.1f, 0.05f, 0.1f };
-    static readonly float[] ShieldPoly = { -0.8f, 0.85f, 0.8f, 0.85f, 0.8f, -0.2f, 0f, -0.9f, -0.8f, -0.2f };
+    static readonly float[] ShieldPoly = { -0.75f, 0.85f, 0.75f, 0.85f, 0.75f, 0.05f, 0f, -0.95f, -0.75f, 0.05f };
     static readonly float[] HexPoly = { 0.9f, 0f, 0.45f, 0.78f, -0.45f, 0.78f, -0.9f, 0f, -0.45f, -0.78f, 0.45f, -0.78f };
     static readonly float[] RoofPoly = { -0.97f, 0.05f, 0f, 0.92f, 0.97f, 0.05f };
     static readonly float[] DropPoly = { 0f, 0.95f, 0.6f, -0.1f, -0.6f, -0.1f };
     static readonly float[] ArrowPoly = { 0.12f, 0.33f, 0.30f, 0.83f, 0.56f, 0.26f };
-    static readonly float[] StarPoly = { 0.0f, 0.95f, -0.28f, 0.28f, -0.95f, 0.0f, -0.28f, -0.28f, 0.0f, -0.95f, 0.28f, -0.28f, 0.95f, 0.0f, 0.28f, 0.28f };
-    static readonly float[] GemPoly = { 0f, 0.95f, -0.85f, 0f, 0f, -0.95f, 0.85f, 0f };
+
+    static readonly float[] StarPoly = { 0.0f, 0.97f, -0.235f, 0.324f, -0.923f, 0.3f, -0.38f, -0.124f, -0.57f, -0.785f, -0.0f, -0.4f, 0.57f, -0.785f, 0.38f, -0.124f, 0.923f, 0.3f, 0.235f, 0.324f };
 
     static float B(bool value) => value ? 1f : 0f;
 
     static float Sample(string shape, float x, float y)
     {
-        float ax = Mathf.Abs(x);
-        float ay = Mathf.Abs(y);
         float r = Mathf.Sqrt(x * x + y * y);
-
         switch (shape)
         {
-            case "circle":
-                return B(ax <= 0.85f && ay <= 0.85f);
-
-            case "ring":
-                return B(ax <= 0.85f && ay <= 0.85f && !(ax <= 0.62f && ay <= 0.62f));
-
-            case "square":
-                return B(ax <= 0.88f && ay <= 0.88f);
-
-            case "glow":
-                return 0f;
-
-            case "coin":
-                return B(ax <= 0.85f && ay <= 0.85f && !(ax <= 0.55f && ay <= 0.55f && (ax >= 0.35f || ay >= 0.35f)));
-
+            case "circle": return B(r <= 0.92f);
+            case "ring": return B(r <= 0.92f && r >= 0.7f);
+            case "square": return B(Mathf.Abs(x) <= 0.88f && Mathf.Abs(y) <= 0.88f);
+            case "glow": { float g = Mathf.Clamp01(1f - r); return g * g; }
+            case "coin": return B(r <= 0.92f && !(r >= 0.52f && r <= 0.64f));
             case "heart":
                 {
-                    bool topL = (x >= -0.75f && x <= -0.05f && y >= -0.05f && y <= 0.75f);
-                    bool topR = (x >= 0.05f && x <= 0.75f && y >= -0.05f && y <= 0.75f);
-                    bool bot = (ay <= 0.75f && y < 0f && (ax + Mathf.Abs(y)) <= 1.0f);
-                    return B(topL || topR || bot);
+                    float hx = x * 1.22f, hy = y * 1.22f + 0.12f;
+                    float a = hx * hx + hy * hy - 1f;
+                    return B(a * a * a - hx * hx * hy * hy * hy <= 0f);
                 }
-
-            case "star":
-                return B(Poly(StarPoly, x, y));
-
-            case "gem":
-                return B(Poly(GemPoly, x, y));
-
-            case "play":
-                return B(Poly(PlayPoly, x, y));
-
-            case "pause":
-                return B(ay <= 0.75f && ((x >= -0.6f && x <= -0.18f) || (x >= 0.18f && x <= 0.6f)));
-
-            case "bolt":
-                return B(Poly(BoltPoly, x, y));
-
-            case "shield":
-                return B(Poly(ShieldPoly, x, y));
-
-            case "hex":
-                return B(Poly(HexPoly, x, y));
-
-            case "drop":
-                return B(Poly(DropPoly, x, y) || (ax <= 0.6f && ay <= 0.6f));
-
+            case "star": return B(Poly(StarPoly, x, y));
+            case "gem": return B(Poly(GemPoly, x, y));
+            case "play": return B(Poly(PlayPoly, x, y));
+            case "pause": return B(Mathf.Abs(y) <= 0.72f && ((x >= -0.58f && x <= -0.18f) || (x >= 0.18f && x <= 0.58f)));
+            case "bolt": return B(Poly(BoltPoly, x, y));
+            case "shield": return B(Poly(ShieldPoly, x, y));
+            case "hex": return B(Poly(HexPoly, x, y));
+            case "drop": return B(Poly(DropPoly, x, y) || Mathf.Sqrt(x * x + (y + 0.1f) * (y + 0.1f)) <= 0.6f);
             case "lock":
                 {
-                    bool body = ax <= 0.65f && y >= -0.8f && y <= 0.1f;
-                    bool shackle = ax <= 0.45f && ax >= 0.22f && y >= 0.1f && y <= 0.75f;
-                    bool top = y >= 0.55f && y <= 0.75f && ax <= 0.45f;
-                    return B(body || shackle || top);
+                    bool body = x >= -0.62f && x <= 0.62f && y >= -0.85f && y <= 0.1f;
+                    float sr = Mathf.Sqrt(x * x + (y - 0.1f) * (y - 0.1f));
+                    bool shackle = y >= 0.1f && sr <= 0.46f && sr >= 0.26f;
+                    return B(body || shackle);
                 }
-
-            case "back":
-                {
-                    bool shaft = y >= -0.18f && y <= 0.18f && x >= -0.4f && x <= 0.7f;
-                    bool head = (x <= -0.05f && ax + ay <= 0.85f && x < 0.2f);
-                    return B(shaft || head);
-                }
-
-            case "check":
-                return B(Seg(x, y, -0.7f, 0f, -0.2f, -0.55f) <= 0.18f || Seg(x, y, -0.2f, -0.55f, 0.75f, 0.6f) <= 0.18f);
-
-            case "close":
-                return B(Seg(x, y, -0.65f, -0.65f, 0.65f, 0.65f) <= 0.18f || Seg(x, y, -0.65f, 0.65f, 0.65f, -0.65f) <= 0.18f);
-
+            case "back": return B(Seg(x, y, 0.35f, 0.78f, -0.4f, 0f) <= 0.15f || Seg(x, y, -0.4f, 0f, 0.35f, -0.78f) <= 0.15f);
+            case "check": return B(Seg(x, y, -0.72f, 0f, -0.22f, -0.55f) <= 0.15f || Seg(x, y, -0.22f, -0.55f, 0.76f, 0.6f) <= 0.15f);
+            case "close": return B(Seg(x, y, -0.65f, -0.65f, 0.65f, 0.65f) <= 0.15f || Seg(x, y, -0.65f, 0.65f, 0.65f, -0.65f) <= 0.15f);
             case "gear":
                 {
-                    bool hub = ax <= 0.65f && ay <= 0.65f && !(ax <= 0.28f && ay <= 0.28f);
-                    bool teethH = ax <= 0.88f && ay <= 0.3f;
-                    bool teethV = ax <= 0.3f && ay <= 0.88f;
-                    return B(hub || teethH || teethV);
+                    float a = Mathf.Atan2(y, x);
+                    float outer = Mathf.Cos(8f * a) > 0.15f ? 0.92f : 0.7f;
+                    return B(r <= outer && r >= 0.3f);
                 }
-
             case "home":
                 {
                     bool roof = Poly(RoofPoly, x, y);
-                    bool body = ax <= 0.68f && y >= -0.85f && y <= 0.1f;
-                    bool door = ax <= 0.22f && y <= -0.2f;
+                    bool body = x >= -0.68f && x <= 0.68f && y >= -0.85f && y <= 0.1f;
+                    bool door = x >= -0.2f && x <= 0.2f && y <= -0.2f;
                     return B((roof || body) && !door);
                 }
-
             case "retry":
                 {
-                    bool outer = ax <= 0.72f && ay <= 0.72f && !(ax <= 0.44f && ay <= 0.44f);
-                    bool cut = x > 0f && y > 0.1f;
-                    bool arrow = x >= 0.3f && x <= 0.85f && y >= 0.1f && y <= 0.65f;
-                    return B((outer && !cut) || arrow);
+                    float angle = Mathf.Atan2(y, x) * Mathf.Rad2Deg;
+                    bool gap = angle > 20f && angle < 70f;
+                    bool ringPart = r >= 0.4f && r <= 0.7f && !gap;
+                    return B(ringPart || Poly(ArrowPoly, x, y));
                 }
-
-            default:
-                return 0f;
+            default: return 0f;
         }
     }
 
