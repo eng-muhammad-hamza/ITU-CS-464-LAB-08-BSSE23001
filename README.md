@@ -1,89 +1,94 @@
-# ITU-CS-464-LAB-07 - Orb Rush Mobile Menu System
+# ITU-CS-464-LAB-08 - Orb Rush Mobile Menu System
 
 **Student Name:** Muhammad Hamza  
 **Roll Number:** BSSE23001  
-**Course:** CS464 - Lab 7: Mobile UI & Menu Systems  
+**Course:** CS464 - Lab 8
 **Instructor:** Muhammad Raza Butt  
-**Demo Video Link:** https://drive.google.com/file/d/1FbkeUZQTevmNqozFcB0iEaFRN3ysFXMJ/view?usp=sharing
+**Demo Video Link:** https://drive.google.com/file/d/1v-jIS9U3IlJjgz-3l5vBp0LTVn4OPSQ1/view?usp=sharing
+**BUILD:** https://drive.google.com/file/d/1g3HaB2By1zAHQgXaHRhtU2dm40YixDW8/view?usp=sharing
 
----
+## Scenes
 
-## Screens
+| Scene          | Contents                                                                                      |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `OrbRushMenu`  | uGUI canvas with all 11 screens, `orbSoundStage` (audio), `orbArenaLoader`                    |
+| `OrbRushArena` | `arenaCamera` with `GameSession` and `ArenaCameraShake`, `arenaListeners` (sound + particles) |
 
-### Screen 1: Splash Screen
+## Audio Mixer
 
-| Screenshots                                                                                                                          | Design & Technical Notes                                                                                                                                                                                                                           |
-| :----------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Splash Color](Docs/01-splash-colored.png)<br><br>**Greyscale:**<br>![Splash Greyscale](Docs/01-splash-greyscale.png) | • This is initial launch screen.<br>• Logo scaling is animated with `OutQuad` in 0.35s and progress bar fills untill 100%.<br>• In greyscale the loading fill can be seen somewhat brighter than dark track, so progress is visible without color. |
+![Audio Mixer](Docs/01-audio-mixer.png)
 
----
+### Behaviour while paused
 
-### Screen 2: Main Menu
+| Audio        | While paused                 | How                                                                     |
+| ------------ | ---------------------------- | ----------------------------------------------------------------------- |
+| Gameplay SFX | freezes                      | `AudioListener.pause = true`, SFX voices respect it                     |
+| Music        | keeps playing, ducked to 35% | `ignoreListenerPause = true` + duck in `OrbMusicDirector`               |
+| UI sounds    | keep playing                 | `ignoreListenerPause = true` (pause/resume/slider sounds must be heard) |
 
-| Screenshots                                                                                                                                    | Design & Technical Notes                                                                                                                                                                                                                                                           |
-| :--------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Main Menu Color](Docs/02-mainmenu-colored.png)<br><br>**Greyscale:**<br>![Main Menu Greyscale](Docs/02-mainmenu-greyscale.png) | • Visuals are simple here and made large so that main action button which is play look prominent.<br>• Top bar groups star count and gem chip seperately from main action buttons.<br>• In greyscale, the cyan PLAY button converts to bright light value, standing out instantly. |
+## Music transitions
 
----
+`OrbMusicCueListener` listens to events and asks `OrbMusicDirector` to crossfade (unscaled time, `InOutSine`).
 
-### Screen 3: Shop Screen
+| Event                            | Music                 |
+| -------------------------------- | --------------------- |
+| App start / `ArenaClosed`        | menu theme (1.2 s)    |
+| `GameSession.LevelPrepared`      | arena theme (1.0 s)   |
+| `GameSession.RunWon` / `RunLost` | results theme (1.4 s) |
+| `GameSession.PauseChanged`       | duck down / up        |
 
-| Screenshots                                                                                                                  | Design & Technical Notes                                                                                                                                                                                                                                                          |
-| :--------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Shop Color](Docs/03-shop-colored.png)<br><br>**Greyscale:**<br>![Shop Greyscale](Docs/03-shop-greyscale.png) | • New skins and upgrades can be purchased from here and both are separated in different tabs.<br>• Switching tabs also animates the highlighter of title.<br>• Greyscale test shows active tab text is sharp white on light pill, while inactive tab stays readable on dark card. |
+## C# events
 
----
+All events are `static event Action<...>`, raised with `?.Invoke(...)`, subscribed with `+=` in `OnEnable` and removed with `-=` in `OnDisable`, and reset with `[RuntimeInitializeOnLoadMethod(SubsystemRegistration)]` so editor domain-reload-off sessions never leak handlers.
 
-### Screen 4: Settings Screen
+| Publisher                                                 | Events                                                                                                   |
+| --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `OrbVitals` (health system, refactored out of the player) | `Damaged(OrbHitReport)`, `Healed`, `ShieldBlocked`, `ShieldRaised`, `Died`                               |
+| `OrbPickup`                                               | `Collected(PickupKind, Vector3)`                                                                         |
+| `PlayerOrb`                                               | `Dashed`                                                                                                 |
+| `GameSession`                                             | `LevelPrepared`, `CountdownChanged`, `RunStarted`, `ShardCollected`, `PauseChanged`, `RunWon`, `RunLost` |
+| `OrbArenaLoader`                                          | `ProgressChanged`, `ArenaReady`, `ArenaClosed`                                                           |
 
-| Screenshots                                                                                                                                  | Design & Technical Notes                                                                                                                                                                                                                                                             |
-| :------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Settings Color](Docs/04-settings-colored.png)<br><br>**Greyscale:**<br>![Settings Greyscale](Docs/04-settings-greyscale.png) | • Simple settings for music loudness and just a effect slider and radio buttons.<br>• Reset progress requires 2 times click confirmation to prevent accidental loss.<br>• In greyscale, slider fills and toggle knobs stay bright white against dark tracks, keeping states obvious. |
+| Subscriber (independent component) | Listens to                                 | Reaction                                   |
+| ---------------------------------- | ------------------------------------------ | ------------------------------------------ |
+| `OrbSfxListener`                   | pickups, vitals, dash, countdown, win/lose | gameplay sounds with pitch variation       |
+| `OrbBurstListener`                 | pickups, vitals, dash, win                 | particle bursts, rings, rising text        |
+| `ArenaCameraShake`                 | damage, block, dash, win/lose              | camera shake (respects the setting)        |
+| `HitFlashOverlay`                  | damage, block, heal                        | full-screen colour flash                   |
+| `HudScreen`                        | vitals, shards, countdown                  | hearts, shield chip, shard counter, banner |
+| `OrbMusicCueListener`              | session + loader                           | music crossfades                           |
+| `LoadingScreen`                    | `ProgressChanged`                          | bar and percentage                         |
+| `GameSession`                      | pickups, damage, death                     | scoring, hit-stop, win/lose                |
+| `PlayerOrb`                        | damage, death, shield                      | knockback, death visuals, shield ring      |
 
----
+Excerpt (declaration + invoke in `OrbVitals`, subscribe/unsubscribe in `HitFlashOverlay`):
 
-### Screen 5: Credits Screen
+```csharp
+public static event Action<OrbHitReport> Damaged;
 
-| Screenshots                                                                                                                              | Design & Technical Notes                                                                                                                                                          |
-| :--------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Credits Color](Docs/05-credits-colored.png)<br><br>**Greyscale:**<br>![Credits Greyscale](Docs/05-credits-greyscale.png) | • Displays project details, and font licenses.<br>• It is animated vertically upwards.<br>• Heading sizes (40px) vs body (36px) maintain clear text hierarchy in black and white. |
+Damaged?.Invoke(new OrbHitReport { heartsLeft = Hearts, maxHearts = MaxHearts, position = transform.position, source = source });
 
----
+void OnEnable()  { OrbVitals.Damaged += onOrbDamaged; }
+void OnDisable() { OrbVitals.Damaged -= onOrbDamaged; }
+```
 
-### Screen 6: Level Select Screen
+## Sounds in the game
 
-| Screenshots                                                                                                                                                | Design & Technical Notes                                                                                                                                                                                                                                                                                                                                                                 |
-| :--------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Level Select Color](Docs/06-levelSelect-colored.png)<br><br>**Greyscale:**<br>![Level Select Greyscale](Docs/06-levelSelect-greyscale.png) | • Shows all 6 levels in a 2 column grid with level details in cards.<br>• Locked levels have dark overlay with lock icon, while newly unlocked levels (which are not played yet) show NEW badge.<br>• Tapping locked card gives quick toast message without opening screen.<br>• There is a sharp contrast between Locked and unlocked cards in greyscale, and star counts remain clear. |
+- UI (11): hover, press, select, back, panel open, panel close, pause, resume, success, error, toggle
+- Gameplay (14): shard pickup, damage, shield block, shield raise, heal, destroyed, dash, cannon fire, spike surge / drone warning, boost, countdown tick, countdown go, run won, run lost
+- Repeated sounds use +/-6% pitch variation (UI +/-3%).
 
----
+## Asset credits
 
-### Screen 7: Loadout Screen
+| Asset                                                                                                                             | Author         | Licence   | Source                                                                                                 |
+| --------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------- | ------------------------------------------------------------------------------------------------------ |
+| Interface Sounds (tick, select, back, open, close, minimize, maximize, confirmation 1-4, error, toggle, glass, pluck, drop, bong) | Kenney         | CC0 1.0   | https://kenney.nl/assets/interface-sounds (mirror: https://github.com/Calinou/kenney-interface-sounds) |
+| UI Audio (click1)                                                                                                                 | Kenney         | CC0 1.0   | https://kenney.nl/assets/ui-audio (mirror: https://github.com/Calinou/kenney-ui-audio)                 |
+| Starter Kit 3D Platformer sounds (coin, jump, fall)                                                                               | Kenney         | CC0 1.0   | https://github.com/KenneyNL/Starter-Kit-3D-Platformer                                                  |
+| Starter Kit FPS sounds (blaster, enemy_hurt, enemy_destroy, jump_b)                                                               | Kenney         | CC0 1.0   | https://github.com/KenneyNL/Starter-Kit-FPS                                                            |
+| "Faith" (menu music)                                                                                                              | Tanner Helland | CC BY 4.0 | https://github.com/tannerhelland/free-music                                                            |
+| "Retribution" (arena music)                                                                                                       | Tanner Helland | CC BY 4.0 | https://github.com/tannerhelland/free-music                                                            |
+| "Nevermore" (results music)                                                                                                       | Tanner Helland | CC BY 4.0 | https://github.com/tannerhelland/free-music                                                            |
+| Exo 2 / Inter fonts                                                                                                               | Google Fonts   | OFL       | https://fonts.google.com                                                                               |
 
-| Screenshots                                                                                                                              | Design & Technical Notes                                                                                                                                                                                                                                                                                                    |
-| :--------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Loadout Color](Docs/07-loadout-colored.png)<br><br>**Greyscale:**<br>![Loadout Greyscale](Docs/07-loadout-greyscale.png) | • Upper section shows large orb preview with effect description along with selectable orb tiles.<br>• Tapping booster toggles state between ON and OFF and if no booster is present then tapping routes to the shop.<br>• In greyscale, thick selection border clearly distinguishes active orb without needing color cues. |
-
----
-
-### Screen 8: Gameplay HUD Screen
-
-| Screenshots                                                                                                                                            | Design & Technical Notes                                                                                                                                                                                                                                                                                  |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Game Screen Color](Docs/08-gameScreen-colored.png)<br><br>**Greyscale:**<br>![Game Screen Greyscale](Docs/08-gameScreen-greyscale.png) | • A simulated gameplay screen with "Game will be played here" message and 2 buttons to simulate the completion or failure of level.<br>• A pause button is in top right corner.<br>• Greyscale check confirms COMPLETE LEVEL has solid bright fill while FAIL LEVEL is outline, creating distinct values. |
-
----
-
-### Screen 9: Pause Screen
-
-| Screenshots                                                                                                                      | Design & Technical Notes                                                                                                                                                                                                                                                                                                               |
-| :------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Pause Color](Docs/09-pause-colored.png)<br><br>**Greyscale:**<br>![Pause Greyscale](Docs/09-pause-greyscale.png) | • A modal is shown own pause with back overlay.<br>• RESUME is biggest button, secondary options are RESTART and SETTINGS.<br>• QUIT TO MENU requires second tap confirmation ("TAP AGAIN TO QUIT") so progress is not lost.<br>• In greyscale, RESUME has brightest fill while QUIT has outline, maintaining proper visual hierarchy. |
-
----
-
-### Screen 10: Results Screen
-
-| Screenshots                                                                                                                          | Design & Technical Notes                                                                                                                                                         |
-| :----------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Color:**<br>![Result Color](Docs/10-result-colored.png)<br><br>**Greyscale:**<br>![Result Greyscale](Docs/10-result-greyscale.png) | • Shows summary of completed run with earned stars, and awarded gems.<br>• Greyscale test shows earned stars filled with bright white while unearned stars remain dark outlines. |
+Music by Tanner Helland, licensed CC BY 4.0 (https://creativecommons.org/licenses/by/4.0/). No changes other than Unity import compression. Icons and in-game shapes are drawn by code (`SpriteFactory`).
